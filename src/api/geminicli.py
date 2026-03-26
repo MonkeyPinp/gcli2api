@@ -242,34 +242,34 @@ async def stream_request(
 
                         # 将该凭证的preview状态设置为False
                         try:
-                            await credential_manager.update_credential_state(
-                                current_file, {"preview": False}, mode="geminicli"
-                            )
+                            #await credential_manager.update_credential_state(
+                             #   current_file, {"preview": False}, mode="geminicli"
+                            #)
                             log.info(f"[GEMINICLI STREAM] 已将凭证 {current_file} 的preview状态设置为False")
                         except Exception as e:
                             log.error(f"[GEMINICLI STREAM] 更新凭证preview状态失败: {e}")
 
                         # 记录404错误
-                        await record_api_call_error(
-                            credential_manager, current_file, status_code,
-                            None, mode="geminicli", model_name=model_name,
-                            error_message=error_body
-                        )
+                        #  await record_api_call_error(
+                           # credential_manager, current_file, status_code,
+                            #None, mode="geminicli", model_name=model_name,
+                            #error_message=error_body
+                        #)
 
                         # 预热下一个凭证（会自动跳过preview=False的凭证）
-                        if next_cred_task is None and attempt < max_retries:
-                            next_cred_task = asyncio.create_task(
-                                credential_manager.get_valid_credential(
-                                    mode="geminicli", model_name=model_name
-                                )
-                            )
+                        #if next_cred_task is None and attempt < max_retries:
+                         #   next_cred_task = asyncio.create_task(
+                          #      credential_manager.get_valid_credential(
+                           #         mode="geminicli", model_name=model_name
+                            #    )
+                            #)
 
                         # 触发重试
-                        if attempt < max_retries:
-                            need_retry = True
-                            break
-                        else:
-                            log.error(f"[GEMINICLI STREAM] 达到最大重试次数，返回404错误")
+                        #if attempt < max_retries:
+                            #need_retry = True
+                        #    break
+                        #else:
+                        #    log.error(f"[GEMINICLI STREAM] 达到最大重试次数，返回404错误")
                             yield chunk
                             return
                     else:
@@ -578,64 +578,33 @@ async def non_stream_request(
 
                 # 将该凭证的preview状态设置为False
                 try:
-                    await credential_manager.update_credential_state(
-                        current_file, {"preview": False}, mode="geminicli"
-                    )
+                    #await credential_manager.update_credential_state(
+                    #    current_file, {"preview": False}, mode="geminicli"
+                    #)
                     log.info(f"[NON-STREAM] 已将凭证 {current_file} 的preview状态设置为False")
                 except Exception as e:
                     log.error(f"[NON-STREAM] 更新凭证preview状态失败: {e}")
 
                 # 记录404错误
-                await record_api_call_error(
-                    credential_manager, current_file, status_code,
-                    None, mode="geminicli", model_name=model_name,
-                    error_message=error_text
-                )
+                #await record_api_call_error(
+                 #   credential_manager, current_file, status_code,
+                  #  None, mode="geminicli", model_name=model_name,
+                  #  error_message=error_text
+                #)
 
                 # 预热下一个凭证（会自动跳过preview=False的凭证）
-                if next_cred_task is None and attempt < max_retries:
-                    next_cred_task = asyncio.create_task(
-                        credential_manager.get_valid_credential(
-                            mode="geminicli", model_name=model_name
-                        )
-                    )
+                #if next_cred_task is None and attempt < max_retries:
+                 #   next_cred_task = asyncio.create_task(
+                  #      credential_manager.get_valid_credential(
+                   #         mode="geminicli", model_name=model_name
+                    #    )
+                    #)
 
                 # 触发重试
-                if attempt < max_retries:
-                    log.info(f"[NON-STREAM] 重试请求 (attempt {attempt + 2}/{max_retries + 1})...")
-
-                    # 使用预热的凭证任务,避免等待
-                    if next_cred_task is not None:
-                        try:
-                            cred_result = await next_cred_task
-                            next_cred_task = None  # 重置任务
-
-                            if cred_result:
-                                current_file, credential_data = cred_result
-                                # 使用快速更新方式
-                                token = credential_data.get("token") or credential_data.get("access_token", "")
-                                project_id = credential_data.get("project_id", "")
-                                if token and project_id:
-                                    auth_headers["Authorization"] = f"Bearer {token}"
-                                    final_payload["project"] = project_id
-                                    await asyncio.sleep(retry_interval)
-                                    continue  # 重试
-                        except Exception as e:
-                            log.warning(f"[NON-STREAM] 预热凭证任务失败: {e}")
-                            next_cred_task = None
-
-                    # 如果预热的凭证不可用,则同步获取
-                    await asyncio.sleep(retry_interval)
-
-                    if not await refresh_credential_fast():
-                        log.error("[NON-STREAM] 重试时无可用凭证或刷新失败")
-                        return Response(
-                            content=json.dumps({"error": "当前无可用凭证"}),
-                            status_code=500,
-                            media_type="application/json"
-                        )
-                    continue  # 重试
-                else:
+                #if attempt < max_retries:
+                    #log.info(f"[NON-STREAM] 重试请求 (attempt {attempt + 2}/{max_retries + 1})...")
+                    #continue  # 重试
+                #else:
                     log.error(f"[NON-STREAM] 达到最大重试次数，返回404错误")
                     return last_error_response
             else:
